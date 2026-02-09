@@ -3,14 +3,14 @@ package telegram
 import (
 	"log"
 
-	"github.com/abdulrahim-m/Technical-Office-Bot/internal/local"
+	"github.com/abdulrahim-m/Technical-Office-Bot/internal/locale"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 type TelegramBot struct {
 	bot     *tgbotapi.BotAPI
 	adminID int64
-	local   local.TelegramLocal
+	locale  locale.TelegramLocale
 }
 
 func TelegramInit(token string, adminID int64) *TelegramBot {
@@ -30,8 +30,8 @@ func TelegramInit(token string, adminID int64) *TelegramBot {
 		adminID: adminID,
 	}
 
-	// Load Default Local
-	t.local.Load()
+	// Load Default locale
+	t.locale.Load()
 
 	// Begin listening to incoming messages
 	go t.Listen()
@@ -49,7 +49,7 @@ func (t *TelegramBot) Listen() {
 		if update.Message != nil { // If we got a message
 			switch update.Message.Text {
 			case "/start":
-				msg := tgbotapi.NewMessage(update.Message.Chat.ID, t.local.WelcomeMessage)
+				msg := tgbotapi.NewMessage(update.Message.Chat.ID, t.locale.WelcomeMessage)
 				msg.ParseMode = "Markdown"
 				t.bot.Send(msg)
 
