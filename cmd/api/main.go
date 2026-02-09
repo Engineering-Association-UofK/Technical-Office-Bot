@@ -22,11 +22,11 @@ func main() {
 		log.Fatalf("Unable to parse config: %v", err)
 	}
 
-	// Start the telegram bot
-	tBot := telegram.TelegramInit(cfg.TelegramToken, cfg.AdminTelegramID)
-
 	// Set up database
 	db := database.NewMySQLConnection(fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName))
+
+	// Start the telegram bot
+	tBot := telegram.TelegramInit(cfg.TelegramToken, cfg.AdminTelegramID, db)
 
 	// Set up feedback
 	fbHandler := handler.NewFeedbackHandler(db, tBot)

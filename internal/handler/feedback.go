@@ -50,7 +50,7 @@ func (fbH *FeedbackHandler) HandleFeedbackRequest(w http.ResponseWriter, r *http
 		Message: req.Message,
 	}
 
-	id, err := fbH.service.Persist(feedback)
+	id, err := fbH.service.Save(feedback)
 	if err != nil {
 		log.Println("Failed to save feedback:", err)
 		http.Error(w, "Failed to save feedback", http.StatusInternalServerError)

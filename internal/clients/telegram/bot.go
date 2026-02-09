@@ -4,16 +4,20 @@ import (
 	"log"
 
 	"github.com/abdulrahim-m/Technical-Office-Bot/internal/locale"
+	"github.com/abdulrahim-m/Technical-Office-Bot/internal/models"
+	"github.com/abdulrahim-m/Technical-Office-Bot/internal/repository"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/jmoiron/sqlx"
 )
 
 type TelegramBot struct {
 	bot     *tgbotapi.BotAPI
 	adminID int64
-	locale  locale.TelegramLocale
+	lm      *locale.LocaleManager
+	repo    *repository.TelegramUserRepo
 }
 
-func TelegramInit(token string, adminID int64) *TelegramBot {
+func TelegramInit(token string, adminID int64, db *sqlx.DB) *TelegramBot {
 	log.Println("Initializing Telegram bot...")
 
 	// Initialize the bot
@@ -28,10 +32,14 @@ func TelegramInit(token string, adminID int64) *TelegramBot {
 	t := TelegramBot{
 		bot:     bot,
 		adminID: adminID,
+		lm:      locale.NewLocaleManager(),
+		repo: &repository.TelegramUserRepo{
+			BaseRepo: repository.BaseRepo[models.TelegramUser]{
+				DB:        db,
+				TableName: "telegram_users",
+			},
+		},
 	}
-
-	// Load Default locale
-	t.locale.Load()
 
 	// Begin listening to incoming messages
 	go t.Listen()
@@ -46,21 +54,35 @@ func (t *TelegramBot) Listen() {
 	updates := t.bot.GetUpdatesChan(u)
 
 	for update := range updates {
-		if update.Message != nil { // If we got a message
-			switch update.Message.Text {
-			case "/start":
-				msg := tgbotapi.NewMessage(update.Message.Chat.ID, t.locale.WelcomeMessage)
-				msg.ParseMode = "Markdown"
-				t.bot.Send(msg)
+		if update.Message == nil {
+			continue
+		}
 
-			default:
-				log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
+		// Save or update user on the database
+		_, err := t.repo.Save(update.Message.From)
+		if err != nil {
+			log.Printf("DB Error: %v", err)
+		}
 
-				msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
-				msg.ReplyToMessageID = update.Message.MessageID
+		// Get user locale
+		userLang := update.Message.From.LanguageCode
+		locale := t.lm.Get(userLang)
 
-				t.bot.Send(msg)
-			}
+		switch update.Message.Text {
+		case "/start":
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, locale.WelcomeMessage)
+			msg.ParseMode = "Markdown"
+			t.bot.Send(msg)
+
+		case "/help":
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, locale.WelcomeMessage)
+			t.bot.Send(msg)
+
+		default:
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
+			msg.ReplyToMessageID = update.Message.MessageID
+
+			t.bot.Send(msg)
 		}
 	}
 }
