@@ -3,6 +3,7 @@ package database
 import (
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -31,9 +32,18 @@ func NewMySQLConnection(dsn string) *sqlx.DB {
 		log.Panic("Error reading initial sql file: ", err)
 	}
 	log.Println("Running starting SQL script...")
-	_, err = db.Exec(string(file))
-	if err != nil {
-		log.Panic("Failed to run initial SQL script: ", err)
+
+	queries := strings.Split(string(file), ";")
+
+	for _, query := range queries {
+		query = strings.TrimSpace(query)
+		if query == "" {
+			continue
+		}
+		_, err = db.Exec(query)
+		if err != nil {
+			log.Panic("Failed to run initial SQL script: ", err)
+		}
 	}
 
 	log.Println("MySQL connection ready.")
