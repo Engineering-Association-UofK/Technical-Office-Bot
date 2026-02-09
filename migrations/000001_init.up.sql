@@ -1,12 +1,4 @@
 -- MySQL database
-CREATE TABLE IF NOT EXISTS feedback (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    phone VARCHAR(20) NOT NULL,
-    message TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
 
 CREATE TABLE IF NOT EXISTS telegram_users (
     telegram_id BIGINT PRIMARY KEY,
@@ -18,11 +10,23 @@ CREATE TABLE IF NOT EXISTS telegram_users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS feedback (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    telegram_id BIGINT,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (telegram_id) REFERENCES telegram_users(telegram_id)
+);
+
 CREATE TABLE IF NOT EXISTS admins (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    telegram_id BIGINT NOT NULL,
+    telegram_id BIGINT,
     discord_id VARCHAR(255),
 
     FOREIGN KEY (telegram_id) REFERENCES telegram_users(telegram_id)

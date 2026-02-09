@@ -18,7 +18,7 @@ func (br *BaseRepo[T]) GetAll() ([]T, error) {
 	return entries, err
 }
 
-func (br *BaseRepo[T]) FindById(id int) (T, error) {
+func (br *BaseRepo[T]) FindById(id int64) (T, error) {
 	var entry T
 	query := fmt.Sprintf("SELECT * FROM %s WHERE id = ?", br.TableName)
 	err := br.DB.Get(&entry, query, id)

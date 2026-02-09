@@ -9,6 +9,7 @@ import (
 	"github.com/abdulrahim-m/Technical-Office-Bot/internal/config"
 	"github.com/abdulrahim-m/Technical-Office-Bot/internal/database"
 	"github.com/abdulrahim-m/Technical-Office-Bot/internal/handler"
+	"github.com/abdulrahim-m/Technical-Office-Bot/internal/service"
 	"github.com/caarlos0/env/v11"
 	"github.com/joho/godotenv"
 )
@@ -22,14 +23,17 @@ func main() {
 		log.Fatalf("Unable to parse config: %v", err)
 	}
 
+	notificationChannel := make(chan string, 25)
+
 	// Set up database
 	db := database.NewMySQLConnection(fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName))
 
-	// Start the telegram bot
-	tBot := telegram.TelegramInit(cfg.TelegramToken, cfg.AdminTelegramID, db)
-
 	// Set up feedback
-	fbHandler := handler.NewFeedbackHandler(db, tBot)
+	fbService := service.NewFeedbackService(db, notificationChannel)
+	fbHandler := handler.NewFeedbackHandler(fbService)
+
+	// Start the telegram bot
+	_ = telegram.TelegramInit(cfg.TelegramToken, cfg.AdminTelegramID, db, fbService, notificationChannel)
 
 	// Set up HTTP server and map endpoints
 	http.HandleFunc("/api/v1/feedback", fbHandler.HandleFeedbackRequest)

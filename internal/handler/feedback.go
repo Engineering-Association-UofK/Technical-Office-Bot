@@ -5,29 +5,16 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/abdulrahim-m/Technical-Office-Bot/internal/clients/telegram"
 	"github.com/abdulrahim-m/Technical-Office-Bot/internal/models"
-	"github.com/abdulrahim-m/Technical-Office-Bot/internal/repository"
 	"github.com/abdulrahim-m/Technical-Office-Bot/internal/service"
-	"github.com/jmoiron/sqlx"
 )
 
 type FeedbackHandler struct {
 	service service.FeedbackService
 }
 
-func NewFeedbackHandler(db *sqlx.DB, bot *telegram.TelegramBot) *FeedbackHandler {
-	return &FeedbackHandler{
-		service: service.FeedbackService{
-			Repo: repository.FeedbackRepo{
-				BaseRepo: repository.BaseRepo[models.FeedbackModel]{
-					DB:        db,
-					TableName: "feedback",
-				},
-			},
-			Bot: bot,
-		},
-	}
+func NewFeedbackHandler(fbService *service.FeedbackService) *FeedbackHandler {
+	return &FeedbackHandler{service: *fbService}
 }
 
 // HTTP handler

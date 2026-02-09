@@ -9,6 +9,8 @@ import (
 type TLocale struct {
 	WelcomeMessage string `json:"welcome_message"`
 	HelpMessage    string `json:"help_message"`
+	FeedbackEmpty  string `json:"feedback_empty"`
+	FeedbackThanks string `json:"feedback_thanks"`
 }
 
 type LocaleManager struct {

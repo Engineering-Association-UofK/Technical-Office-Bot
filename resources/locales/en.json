@@ -1,3 +1,6 @@
 {
-    "welcome_message": "Welcome, this is *TOB* 👋.\nThis is the official bot for the Technical office at SEA - UofK.\n\nIf you are a visitor, you can send feedback by using:\n`/feedback <message>`."
+    "welcome_message": "Welcome, this is *TOB* 👋.\nThis is the official bot for the Technical office at SEA - UofK.\n\nIf you are a visitor, you can send feedback by using:\n`/feedback <message>`.",
+    "help_message": "This is help",
+    "feedback_empty": "Please include your feedback after the command 😅",
+    "feedback_thanks": "Thank you for the feedback 🔥, we will be sure to check it."
 }
