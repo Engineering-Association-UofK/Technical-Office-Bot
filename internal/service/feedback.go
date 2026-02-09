@@ -19,10 +19,10 @@ func (fbS *FeedbackService) GetAll() ([]models.FeedbackModel, error) {
 }
 
 func (fbS *FeedbackService) FineById(id int) (models.FeedbackModel, error) {
-	return fbS.Repo.FineById(id)
+	return fbS.Repo.FindById(id)
 }
 
-func (fbS *FeedbackService) Persist(fb models.FeedbackModel) (int64, error) {
+func (fbS *FeedbackService) Save(fb models.FeedbackModel) (int64, error) {
 	fb.CreatedAt = time.Now()
 
 	if fb.Message == "" {
@@ -33,7 +33,7 @@ func (fbS *FeedbackService) Persist(fb models.FeedbackModel) (int64, error) {
 		fb.Name = "Anonymous"
 	}
 
-	id, err := fbS.Repo.Persist(fb)
+	id, err := fbS.Repo.Save(fb)
 	if err != nil {
 		return 0, err
 	}

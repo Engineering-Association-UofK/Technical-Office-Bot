@@ -3,7 +3,6 @@ package repository
 import (
 	"fmt"
 
-	"github.com/abdulrahim-m/Technical-Office-Bot/internal/models"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -19,29 +18,23 @@ func (br *BaseRepo[T]) GetAll() ([]T, error) {
 	return entries, err
 }
 
-func (br *BaseRepo[T]) FineById(id int) (T, error) {
+func (br *BaseRepo[T]) FindById(id int) (T, error) {
 	var entry T
 	query := fmt.Sprintf("SELECT * FROM %s WHERE id = ?", br.TableName)
 	err := br.DB.Get(&entry, query, id)
 	return entry, err
 }
 
-type AdminRepository struct {
-	BaseRepo[models.FeedbackModel]
-}
-
-func NewAdminRepository(db *sqlx.DB) *AdminRepository {
-	return &AdminRepository{
-		BaseRepo: BaseRepo[models.FeedbackModel]{
-			DB:        db,
-			TableName: "admins",
-		},
+func (br *BaseRepo[T]) Persist(query string, args ...any) (int64, error) {
+	result, err := br.DB.Exec(query, args...)
+	if err != nil {
+		return 0, err
 	}
-}
 
-// You can still add specific methods that only Admins have!
-func (r *AdminRepository) FindByEmail(email string) (*models.FeedbackModel, error) {
-	var a models.FeedbackModel
-	err := r.DB.Get(&a, "SELECT * FROM admins WHERE email = ?", email)
-	return &a, err
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
 }
