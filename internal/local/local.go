@@ -17,11 +17,11 @@ func (tl *TelegramLocal) Load() {
 		tl.local = "en"
 	}
 
-	data, err := os.ReadFile("internal/local/" + tl.local + ".json")
+	data, err := os.ReadFile("resources/locals/" + tl.local + ".json")
 	if err != nil {
 		log.Fatalln("Failed to load local:", err, " - Will try to use default local.")
 
-		data, err = os.ReadFile("internal/local/en.json")
+		data, err = os.ReadFile("resources/locals/en.json")
 		if err != nil {
 			log.Fatalln("Failed to load default local:", err)
 		}
