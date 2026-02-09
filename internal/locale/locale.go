@@ -6,29 +6,43 @@ import (
 	"os"
 )
 
-type TelegramLocale struct {
-	locale         string
+type TLocale struct {
 	WelcomeMessage string `json:"welcome_message"`
 	HelpMessage    string `json:"help_message"`
 }
 
-func (tl *TelegramLocale) Load() {
-	if tl.locale == "" {
-		tl.locale = "en"
+type LocaleManager struct {
+	locales map[string]TLocale
+}
+
+func NewLocaleManager() *LocaleManager {
+	lm := &LocaleManager{
+		locales: make(map[string]TLocale),
 	}
 
-	data, err := os.ReadFile("resources/locales/" + tl.locale + ".json")
+	lm.load("en")
+	lm.load("ar")
+	return lm
+}
+
+func (lm *LocaleManager) Get(lang string) TLocale {
+	if val, ok := lm.locales[lang]; ok {
+		return val
+	}
+	return lm.locales["en"]
+}
+
+func (lm *LocaleManager) load(lang string) {
+	data, err := os.ReadFile("resources/locales/" + lang + ".json")
 	if err != nil {
-		log.Fatalln("Failed to load locale:", err, " - Will try to use default locale.")
-
-		data, err = os.ReadFile("resources/locales/en.json")
-		if err != nil {
-			log.Fatalln("Failed to load default locale:", err)
-		}
+		log.Printf("Warning: Could not load locale %s: %v", lang, err)
+		return
 	}
 
-	err = json.Unmarshal(data, &tl)
-	if err != nil {
-		log.Fatalln("Failed to parse locale:", err)
+	var l TLocale
+	if err = json.Unmarshal(data, &l); err != nil {
+		log.Printf("Warning: Could not unmarchal locale %s: %v", lang, err)
+		return
 	}
+	lm.locales[lang] = l
 }
