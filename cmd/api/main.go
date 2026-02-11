@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
+	"github.com/abdulrahim-m/Technical-Office-Bot/internal/clients/server"
 	"github.com/abdulrahim-m/Technical-Office-Bot/internal/clients/telegram"
 	"github.com/abdulrahim-m/Technical-Office-Bot/internal/config"
 	"github.com/abdulrahim-m/Technical-Office-Bot/internal/database"
@@ -24,6 +26,9 @@ func main() {
 	}
 
 	notificationChannel := make(chan string, 25)
+	sysHelthIntervalUpdateChannel := make(chan time.Duration, 1)
+
+	_ = server.NewSystemHealth(sysHelthIntervalUpdateChannel)
 
 	// Set up database
 	db := database.NewMySQLConnection(fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName))
@@ -38,9 +43,9 @@ func main() {
 	// Set up HTTP server and map endpoints
 	http.HandleFunc("/api/v1/feedback", fbHandler.HandleFeedbackRequest)
 
-	log.Println("Starting server on :8080...")
+	log.Printf("Starting server on :%s...\n", cfg.Port)
 	go func() {
-		if err := http.ListenAndServe(":8080", nil); err != nil {
+		if err := http.ListenAndServe(":"+cfg.Port, nil); err != nil {
 			log.Fatalf("Server failed: %v", err)
 		}
 	}()
