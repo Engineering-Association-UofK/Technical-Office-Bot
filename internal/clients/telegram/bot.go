@@ -17,7 +17,7 @@ type TelegramBot struct {
 	adminID   int64
 	lm        *locale.LocaleManager
 	notify    <-chan string
-	repo      *repository.TelegramUserRepo
+	repo      *repository.TelegramRepo
 	fbService *service.FeedbackService
 }
 
@@ -38,10 +38,14 @@ func TelegramInit(token string, adminID int64, db *sqlx.DB, fbService *service.F
 		adminID: adminID,
 		lm:      locale.NewLocaleManager(),
 		notify:  notificationChannel,
-		repo: &repository.TelegramUserRepo{
-			BaseRepo: repository.BaseRepo[models.TelegramUser]{
+		repo: &repository.TelegramRepo{
+			Tuser: repository.BaseRepo[models.TelegramUser]{
 				DB:        db,
 				TableName: "telegram_users",
+			},
+			Tinteraction: repository.BaseRepo[models.TelegramInteraction]{
+				DB:        db,
+				TableName: "telegram_interactions",
 			},
 		},
 		fbService: fbService,
@@ -66,7 +70,7 @@ func (t *TelegramBot) Listen() {
 		}
 
 		// Save or update user on the database
-		id, err := t.repo.Save(update.Message.From)
+		id, err := t.repo.InteractionSave(update.Message)
 		if err != nil {
 			log.Printf("DB Error: %v", err)
 		}
