@@ -58,10 +58,10 @@ func (fbS *FeedbackService) Save(fb models.FeedbackModel) (int64, error) {
 	return id, nil
 }
 
-func (fbS *FeedbackService) TelegramFeedback(user *models.TelegramUser, message string) (int64, error) {
+func (fbS *FeedbackService) NotifyFeedback(name string, ID int64, message string) (int64, error) {
 	fb := models.FeedbackModel{
-		Name:       user.Username,
-		TelegramID: sql.NullInt64{Int64: user.TelegramID, Valid: user.TelegramID != 0},
+		Name:       name,
+		TelegramID: sql.NullInt64{Int64: ID, Valid: ID != 0},
 		Message:    message,
 	}
 
