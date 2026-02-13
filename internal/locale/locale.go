@@ -2,7 +2,7 @@ package locale
 
 import (
 	"encoding/json"
-	"log"
+	"log/slog"
 	"os"
 )
 
@@ -37,13 +37,13 @@ func (lm *LocaleManager) Get(lang string) TLocale {
 func (lm *LocaleManager) load(lang string) {
 	data, err := os.ReadFile("resources/locales/" + lang + ".json")
 	if err != nil {
-		log.Printf("Warning: Could not load locale %s: %v", lang, err)
+		slog.Warn("Could not load locale: "+err.Error(), "Language", lang)
 		return
 	}
 
 	var l TLocale
 	if err = json.Unmarshal(data, &l); err != nil {
-		log.Printf("Warning: Could not unmarchal locale %s: %v", lang, err)
+		slog.Warn("Warning: Could not unmarchal locale: "+err.Error(), "Language", lang)
 		return
 	}
 	lm.locales[lang] = l

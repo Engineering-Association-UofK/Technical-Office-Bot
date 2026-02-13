@@ -2,7 +2,7 @@ package handler
 
 import (
 	"encoding/json"
-	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/abdulrahim-m/Technical-Office-Bot/internal/models"
@@ -39,7 +39,7 @@ func (fbH *FeedbackHandler) HandleFeedbackRequest(w http.ResponseWriter, r *http
 
 	id, err := fbH.service.Save(feedback)
 	if err != nil {
-		log.Println("Failed to save feedback:", err)
+		slog.Error("Failed to save feedback: " + err.Error())
 		http.Error(w, "Failed to save feedback", http.StatusInternalServerError)
 		return
 	}

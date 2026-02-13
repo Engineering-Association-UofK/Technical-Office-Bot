@@ -2,7 +2,7 @@ package repository
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 
 	"github.com/abdulrahim-m/Technical-Office-Bot/internal/models"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -19,6 +19,7 @@ func (tr *TelegramRepo) InteractionSave(tm *tgbotapi.Message) (int64, error) {
 		ON DUPLICATE KEY UPDATE
 			username = VALUES(username),
 			first_name = VALUES(first_name),
+			locale = VALUES(locale),
 			is_bot_blocked = FALSE;`,
 		tm.From.ID, tm.From.UserName, tm.From.FirstName, tm.From.LanguageCode, models.NewPreferences())
 	if err != nil {
@@ -37,7 +38,7 @@ func (tr *TelegramRepo) InteractionSave(tm *tgbotapi.Message) (int64, error) {
 
 func (tr *TelegramRepo) UpdatePreferences(tu models.TelegramUser) error {
 	if _, err := tr.FindById(tu.TelegramID); err != nil {
-		log.Printf("Telegram user with ID '%v' Was not found: %s", tu.TelegramID, err)
+		slog.Error("Telegram user Was not found: "+err.Error(), "ID", tu.TelegramID, "Context", "Update Preferences")
 	}
 
 	query := fmt.Sprintf(`UPDATE %s SET preferences = ? WHERE telegram_id = ?`, tr.Tuser.TableName)
@@ -55,6 +56,13 @@ func (tr *TelegramRepo) FindById(id int64) (models.TelegramUser, error) {
 func (tr *TelegramRepo) FindNotifyEnabled() ([]models.TelegramUser, error) {
 	var entries []models.TelegramUser
 	query := fmt.Sprintf(`SELECT * FROM %s WHERE JSON_EXTRACT(preferences, '$.notify') = CAST(true AS JSON)`, tr.Tuser.TableName)
+	err := tr.Tuser.DB.Select(&entries, query)
+	return entries, err
+}
+
+func (tr *TelegramRepo) FindTechnicalAdmins() ([]models.TelegramUser, error) {
+	var entries []models.TelegramUser
+	query := fmt.Sprintf(`SELECT * FROM %s WHERE technical_admin = true`, tr.Tuser.TableName)
 	err := tr.Tuser.DB.Select(&entries, query)
 	return entries, err
 }

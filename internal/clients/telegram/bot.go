@@ -1,7 +1,7 @@
 package telegram
 
 import (
-	"log"
+	"log/slog"
 	"strings"
 
 	"github.com/abdulrahim-m/Technical-Office-Bot/internal/locale"
@@ -14,30 +14,28 @@ import (
 
 type TelegramBot struct {
 	bot       *tgbotapi.BotAPI
-	adminID   int64
 	lm        *locale.LocaleManager
 	notify    <-chan string
 	repo      *repository.TelegramRepo
 	fbService *service.FeedbackService
 }
 
-func TelegramInit(token string, adminID int64, db *sqlx.DB, fbService *service.FeedbackService, notificationChannel <-chan string) *TelegramBot {
-	log.Println("Initializing Telegram bot...")
+func TelegramInit(token string, db *sqlx.DB, fbService *service.FeedbackService, notificationChannel <-chan string) (*TelegramBot, error) {
+	slog.Info("Initializing Telegram bot...")
 
 	// Initialize the bot
 	bot, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
-		log.Panic("Error initializing telegram bot: ", err)
+		return nil, err
 	}
 
 	// bot.Debug = true
-	log.Printf("Authorized on account %s", bot.Self.UserName)
+	slog.Info("Authorized on account " + bot.Self.UserName)
 
 	t := TelegramBot{
-		bot:     bot,
-		adminID: adminID,
-		lm:      locale.NewLocaleManager(),
-		notify:  notificationChannel,
+		bot:    bot,
+		lm:     locale.NewLocaleManager(),
+		notify: notificationChannel,
 		repo: &repository.TelegramRepo{
 			Tuser: repository.BaseRepo[models.TelegramUser]{
 				DB:        db,
@@ -53,9 +51,9 @@ func TelegramInit(token string, adminID int64, db *sqlx.DB, fbService *service.F
 
 	// Begin listening to incoming messages
 	go t.Listen()
-	go t.NotifyAdmin()
+	go t.NotifyTechnicalAdmins()
 
-	return &t
+	return &t, nil
 }
 
 func (t *TelegramBot) Listen() {
@@ -70,11 +68,10 @@ func (t *TelegramBot) Listen() {
 		}
 
 		// Save or update user on the database
-		id, err := t.repo.InteractionSave(update.Message)
+		_, err := t.repo.InteractionSave(update.Message)
 		if err != nil {
-			log.Printf("DB Error: %v", err)
+			slog.Error("DB Error: " + err.Error())
 		}
-		user, _ := t.repo.FindById(id)
 
 		// Get user locale
 		userLang := update.Message.From.LanguageCode
@@ -94,9 +91,9 @@ func (t *TelegramBot) Listen() {
 				return
 			}
 
-			_, err = t.fbService.TelegramFeedback(&user, feedbackContent)
+			_, err = t.fbService.NotifyFeedback(update.Message.From.UserName, update.Message.From.ID, feedbackContent)
 			if err != nil {
-				log.Println("Error Saving Telegram feedback: ", err)
+				slog.Error("Error Saving Telegram feedback: " + err.Error())
 			}
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, locale.FeedbackThanks)
 			t.bot.Send(msg)
@@ -122,9 +119,15 @@ func (t *TelegramBot) Listen() {
 	}
 }
 
-func (t *TelegramBot) NotifyAdmin() {
+func (t *TelegramBot) NotifyTechnicalAdmins() {
 	for message := range t.notify {
-		msg := tgbotapi.NewMessage(t.adminID, message)
-		t.bot.Send(msg)
+		admins, err := t.repo.FindTechnicalAdmins()
+		if err != nil {
+			slog.Error("Error getting admins to notify: " + err.Error())
+		}
+		for _, admin := range admins {
+			msg := tgbotapi.NewMessage(admin.TelegramID, message)
+			t.bot.Send(msg)
+		}
 	}
 }

@@ -1,7 +1,7 @@
 package database
 
 import (
-	"log"
+	"log/slog"
 	"os"
 	"strings"
 	"time"
@@ -10,11 +10,11 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func NewMySQLConnection(dsn string) *sqlx.DB {
-	log.Println("Starting MySQL connection...")
+func NewMySQLConnection(dsn string) (*sqlx.DB, error) {
+	slog.Info("Starting MySQL connection...")
 	db, err := sqlx.Open("mysql", dsn)
 	if err != nil {
-		log.Panic("Failed to open database connection: ", err)
+		slog.Error("Failed to open database connection: ", err)
 	}
 
 	db.SetMaxOpenConns(25)
@@ -23,15 +23,15 @@ func NewMySQLConnection(dsn string) *sqlx.DB {
 
 	err = db.Ping()
 	if err != nil {
-		log.Panic("Database not responding: ", err)
+		return nil, err
 	}
 
-	log.Println("Opening initial SQL file...")
+	slog.Info("Opening initial SQL file...")
 	file, err := os.ReadFile("migrations/000001_init.up.sql")
 	if err != nil {
-		log.Panic("Error reading initial sql file: ", err)
+		return nil, err
 	}
-	log.Println("Running starting SQL script...")
+	slog.Info("Running initial SQL script...")
 
 	queries := strings.Split(string(file), ";")
 
@@ -42,10 +42,10 @@ func NewMySQLConnection(dsn string) *sqlx.DB {
 		}
 		_, err = db.Exec(query)
 		if err != nil {
-			log.Panic("Failed to run initial SQL script: ", err)
+			return nil, err
 		}
 	}
 
-	log.Println("MySQL connection ready.")
-	return db
+	slog.Info("MySQL connection ready.")
+	return db, nil
 }
