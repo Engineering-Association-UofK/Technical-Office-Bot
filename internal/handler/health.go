@@ -89,10 +89,10 @@ func (hh *HealthHandler) createSystemHealthDetails() models.SystemHealthResponse
 	max := hh.System.Status.Memory.Max
 	swapUsed := hh.System.Status.Memory.CurrentSwap
 	swapMax := hh.System.Status.Memory.MaxSwap
-	percent := (float64(used) / float64(max)) * 100
+	percent := (float64(used) / float64(max))
 	var swapPercent float64
 	if swapMax != 0 {
-		swapPercent = (float64(swapUsed) / float64(swapMax)) * 100
+		swapPercent = (float64(swapUsed) / float64(swapMax))
 	}
 
 	m := models.MemoryResponse{
@@ -106,7 +106,7 @@ func (hh *HealthHandler) createSystemHealthDetails() models.SystemHealthResponse
 
 	used = hh.System.Status.Disk.Current
 	max = hh.System.Status.Disk.Max
-	percent = float64(used/max) * 100
+	percent = float64(used) / float64(max)
 
 	d := models.DiskResponse{
 		UsedBytes:   used,
