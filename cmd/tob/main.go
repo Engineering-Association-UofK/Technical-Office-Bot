@@ -6,13 +6,13 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/abdulrahim-m/Technical-Office-Bot/cmd/routes"
-	"github.com/abdulrahim-m/Technical-Office-Bot/internal/clients/server"
-	"github.com/abdulrahim-m/Technical-Office-Bot/internal/clients/telegram"
-	"github.com/abdulrahim-m/Technical-Office-Bot/internal/config"
-	"github.com/abdulrahim-m/Technical-Office-Bot/internal/database"
-	"github.com/abdulrahim-m/Technical-Office-Bot/internal/handler"
-	"github.com/abdulrahim-m/Technical-Office-Bot/internal/service"
+	"github.com/Engineering-Association-UofK/Technical-Office-Bot/cmd/routes"
+	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/clients/server"
+	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/clients/telegram"
+	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/config"
+	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/database"
+	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/handler"
+	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/service"
 )
 
 func main() {

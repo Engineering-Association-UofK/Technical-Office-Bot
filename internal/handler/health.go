@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/abdulrahim-m/Technical-Office-Bot/internal/clients/server"
-	"github.com/abdulrahim-m/Technical-Office-Bot/internal/models"
+	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/clients/server"
+	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/models"
 )
 
 type HealthHandler struct {
