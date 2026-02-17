@@ -13,7 +13,7 @@ func SetupRoutes(fb *handler.FeedbackHandler, h *handler.HealthHandler) http.Han
 	mux.Handle("/api/v1/feedback", feedBackHandler)
 
 	healthWithAuth := handler.Protected(http.HandlerFunc(h.HandleHealthRequests))
-	mux.Handle("GET /api/v1/health/{path}/{value...}", healthWithAuth)
+	mux.Handle("/api/v1/health/{path}/{value...}", healthWithAuth)
 
 	return mux
 }

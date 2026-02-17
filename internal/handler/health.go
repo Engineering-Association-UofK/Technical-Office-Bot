@@ -19,6 +19,11 @@ func NewHealthHandler(health *server.SystemHealth) *HealthHandler {
 
 func (hh *HealthHandler) HandleHealthRequests(w http.ResponseWriter, r *http.Request) {
 
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	endpoint := r.PathValue("path")
 	_ = r.PathValue("value")
 
