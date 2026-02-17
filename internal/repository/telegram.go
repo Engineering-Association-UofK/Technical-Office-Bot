@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/abdulrahim-m/Technical-Office-Bot/internal/models"
+	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/models"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 

@@ -2,7 +2,6 @@ package server
 
 import (
 	"log/slog"
-	"time"
 
 	"github.com/shirou/gopsutil/v4/cpu"
 	"github.com/shirou/gopsutil/v4/disk"
@@ -62,17 +61,17 @@ func (sh *SystemHealth) UpdateStatus() {
 	v, err := mem.VirtualMemory()
 	if err != nil {
 		slog.Error("Error reading Virtual Memory stats: " + err.Error())
+	} else {
+		sh.Status.Memory.Update(
+			v.Used,
+			v.Total,
+			v.SwapCached,
+			v.SwapTotal,
+		)
 	}
 
-	sh.Status.Memory.Update(
-		v.Used,
-		v.Total,
-		v.SwapCached,
-		v.SwapTotal,
-	)
-
 	// CPU Stats
-	c, err := cpu.Percent(time.Second, false)
+	c, err := cpu.Percent(0, false)
 	if err != nil {
 		slog.Error("Error reading CPU stats: " + err.Error())
 	} else {

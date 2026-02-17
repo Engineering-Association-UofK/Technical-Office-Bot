@@ -4,10 +4,10 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/abdulrahim-m/Technical-Office-Bot/internal/locale"
-	"github.com/abdulrahim-m/Technical-Office-Bot/internal/models"
-	"github.com/abdulrahim-m/Technical-Office-Bot/internal/repository"
-	"github.com/abdulrahim-m/Technical-Office-Bot/internal/service"
+	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/locale"
+	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/models"
+	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/repository"
+	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/service"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/jmoiron/sqlx"
 )

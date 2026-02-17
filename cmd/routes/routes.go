@@ -3,7 +3,7 @@ package routes
 import (
 	"net/http"
 
-	"github.com/abdulrahim-m/Technical-Office-Bot/internal/handler"
+	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/handler"
 )
 
 func SetupRoutes(fb *handler.FeedbackHandler, h *handler.HealthHandler) http.Handler {

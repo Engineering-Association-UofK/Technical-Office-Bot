@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/abdulrahim-m/Technical-Office-Bot/internal/models"
-	"github.com/abdulrahim-m/Technical-Office-Bot/internal/repository"
+	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/models"
+	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/repository"
 	"github.com/jmoiron/sqlx"
 )
 

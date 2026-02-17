@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"github.com/abdulrahim-m/Technical-Office-Bot/internal/models"
+	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/models"
 )
 
 type FeedbackRepo struct {

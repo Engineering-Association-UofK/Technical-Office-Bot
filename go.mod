@@ -1,4 +1,4 @@
-module github.com/abdulrahim-m/Technical-Office-Bot
+module github.com/Engineering-Association-UofK/Technical-Office-Bot
 
 go 1.25.5
 

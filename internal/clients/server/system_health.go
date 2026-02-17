@@ -24,7 +24,7 @@ func NewSystemHealth(channel <-chan time.Duration) (*SystemHealth, error) {
 			Disk:   Disk{},
 			CPU:    CPU{},
 		},
-		Interval:        time.Second * 5,
+		Interval:        time.Second * 30,
 		IsResponsive:    true,
 		IntervalChannel: channel,
 	}

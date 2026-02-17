@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/abdulrahim-m/Technical-Office-Bot/internal/config"
+	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/config"
 	"github.com/golang-jwt/jwt/v5"
 )
 

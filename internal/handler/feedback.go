@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/abdulrahim-m/Technical-Office-Bot/internal/models"
-	"github.com/abdulrahim-m/Technical-Office-Bot/internal/service"
+	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/models"
+	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/service"
 )
 
 type FeedbackHandler struct {
