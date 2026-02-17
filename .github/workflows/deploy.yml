@@ -1,0 +1,63 @@
+name: Go
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version-file: go.mod
+
+    - name: Build
+      run: go build -o tob cmd/tob/main.go
+
+    # - name: Test
+    #   run: go test -v ./...
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: tob-bot
+        path: tob
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tob-bot
+          path: .
+
+      - name: Copy to Cloud Machine
+        if: github.event_name == 'push'
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_HOST_USERNAME }}
+          key: ${{ secrets.PRODUCTION_HOST_SSH_PRIVATE_KEY }}
+          source: "tob"
+          target: "~/tob"
+
+      - name: Restart Application on Cloud Machine
+        if: github.event_name == 'push'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_HOST_USERNAME }}
+          key: ${{ secrets.PRODUCTION_HOST_SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/tob
+            pm2 restart ecosystem.config.js --update-env
+            pm2 save
