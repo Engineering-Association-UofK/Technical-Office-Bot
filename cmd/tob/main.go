@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Engineering-Association-UofK/Technical-Office-Bot/cmd/routes"
-	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/clients/server"
 	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/clients/telegram"
 	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/config"
 	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/database"
@@ -25,6 +24,8 @@ func main() {
 	// Setup logging
 	Log := config.NewMultiHandlerLog()
 	slog.SetDefault(Log)
+
+	a := service.NewAdminAccount()
 
 	notificationChannel := make(chan string, 25)
 	sysHealthIntervalUpdateChannel := make(chan time.Duration, 1)
@@ -46,7 +47,7 @@ func main() {
 		slog.Error("Error starting telegram service: " + err.Error())
 	}
 
-	health, err := server.NewSystemHealth(sysHealthIntervalUpdateChannel)
+	health, err := service.NewSystemHealth(sysHealthIntervalUpdateChannel, a)
 	if err != nil {
 		slog.Error("Error starting system monitoring: " + err.Error())
 		return
@@ -62,5 +63,3 @@ func main() {
 		return
 	}
 }
-
-// TODO: Use the Actuator structure

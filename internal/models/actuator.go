@@ -1,4 +1,4 @@
-package server
+package models
 
 type ActuatorHealthResponse struct {
 	Status     string             `json:"status"`

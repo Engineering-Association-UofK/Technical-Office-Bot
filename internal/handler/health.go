@@ -5,15 +5,16 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/clients/server"
 	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/models"
+	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/service"
+	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/utils"
 )
 
 type HealthHandler struct {
-	System *server.SystemHealth
+	System *service.SystemHealth
 }
 
-func NewHealthHandler(health *server.SystemHealth) *HealthHandler {
+func NewHealthHandler(health *service.SystemHealth) *HealthHandler {
 	return &HealthHandler{System: health}
 }
 
@@ -70,7 +71,7 @@ func (hh *HealthHandler) createOverview() models.HealthOverviewResponse {
 	if !hh.System.IsResponsive {
 		health = models.Critical
 	} else {
-		if server.MB_Conv(hh.System.Status.Memory.Max-hh.System.Status.Memory.Current) < 150 {
+		if utils.MB_Conv(hh.System.Status.Memory.Max-hh.System.Status.Memory.Current) < 150 {
 			health = models.Warning
 		} else {
 			health = models.Healthy

@@ -18,6 +18,10 @@ type Config struct {
 	DBName     string `env:"DB_NAME,required"`
 
 	JwtSecret string `env:"JWT_SECRET"`
+
+	UserName string `env:"USERNAME"`
+	Password string `env:"PASSWORD"`
+	Host     string `env:"HOST"`
 }
 
 func Load() error {
