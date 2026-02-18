@@ -32,9 +32,7 @@ const userKey contextKey = "user_data"
 func Basic(next http.Handler) http.Handler {
 	return recoveryMiddleware(
 		loggingMiddleware(
-			corsMiddleware(
-				next,
-			),
+			next,
 		),
 	)
 }
@@ -150,21 +148,6 @@ func loggingMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 
 		slog.Debug("Logging middleware", "Method", r.Method, "Path", r.URL.Path, "Time took", time.Since(start))
-	})
-}
-
-func corsMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Authorization")
-
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-
-		next.ServeHTTP(w, r)
 	})
 }
 

@@ -3,6 +3,7 @@ package service
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -57,6 +58,15 @@ func (a *AdminAccount) GetToken() error {
 	token, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
+	}
+
+	if resp.StatusCode != 200 {
+		var e models.Error
+		if err = json.Unmarshal(token, &e); err != nil {
+			return err
+		}
+		slog.Error("Error trying to log in.", "Status", e.Status, "Message", e.Message, "Time", e.TimeStamp)
+		return fmt.Errorf("Failed to get Auth token: ")
 	}
 	a.token = string(token)
 	return nil

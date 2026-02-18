@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log/slog"
-	"net/http"
 	"time"
 
 	"github.com/Engineering-Association-UofK/Technical-Office-Bot/cmd/routes"
@@ -55,11 +54,5 @@ func main() {
 	hHandler := handler.NewHealthHandler(health)
 
 	// Set up HTTP server and map endpoints
-	router := routes.SetupRoutes(fbHandler, hHandler)
-
-	slog.Info("Starting server on :" + config.App.Port)
-	if err := http.ListenAndServe(":"+config.App.Port, router); err != nil {
-		Log.Error("Server failed: " + err.Error())
-		return
-	}
+	routes.HttpStart(fbHandler, hHandler)
 }

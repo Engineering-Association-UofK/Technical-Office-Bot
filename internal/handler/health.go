@@ -26,7 +26,6 @@ func (hh *HealthHandler) HandleHealthRequests(w http.ResponseWriter, r *http.Req
 	}
 
 	endpoint := r.PathValue("path")
-	_ = r.PathValue("value")
 
 	var response any
 
