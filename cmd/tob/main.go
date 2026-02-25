@@ -24,7 +24,7 @@ func main() {
 	Log := config.NewMultiHandlerLog()
 	slog.SetDefault(Log)
 
-	a := service.NewAdminAccount()
+	admin := service.NewAdminAccount()
 
 	notificationChannel := make(chan string, 25)
 	sysHealthIntervalUpdateChannel := make(chan time.Duration, 1)
@@ -46,7 +46,7 @@ func main() {
 		slog.Error("Error starting telegram service: " + err.Error())
 	}
 
-	health, err := service.NewSystemHealth(sysHealthIntervalUpdateChannel, a)
+	health, err := service.NewSystemHealth(sysHealthIntervalUpdateChannel, admin)
 	if err != nil {
 		slog.Error("Error starting system monitoring: " + err.Error())
 		return

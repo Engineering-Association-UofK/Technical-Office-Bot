@@ -165,6 +165,11 @@ func (sh *SystemHealth) PingBackend() {
 		sh.IsResponsive = false
 		return
 	}
+	if health == nil {
+		slog.Error("Pinging backend returned no data", "port", 8080, "endpoint", "/actuator/health")
+		sh.IsResponsive = false
+		return
+	}
 
 	if health.Status == "UP" {
 		sh.IsResponsive = true
