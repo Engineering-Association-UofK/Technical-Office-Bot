@@ -47,7 +47,7 @@ jobs:
           username: ${{ secrets.PRODUCTION_HOST_USERNAME }}
           key: ${{ secrets.PRODUCTION_HOST_SSH_PRIVATE_KEY }}
           source: "tob"
-          target: "~/tob"
+          target: "~"
 
       - name: Restart Application on Cloud Machine
         uses: appleboy/ssh-action@v1.0.3
@@ -56,6 +56,8 @@ jobs:
           username: ${{ secrets.PRODUCTION_HOST_USERNAME }}
           key: ${{ secrets.PRODUCTION_HOST_SSH_PRIVATE_KEY }}
           script: |
-            cd ~/tob
-            pm2 restart tob
-            pm2 save
+            sudo systemctl stop tob
+            sudo mv ~/tob /opt/tob/tob
+            sudo chown backend:backend /opt/tob/tob
+            sudo chmod +x /opt/tob/tob
+            sudo systemctl start tob
