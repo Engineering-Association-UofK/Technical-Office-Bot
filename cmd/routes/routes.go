@@ -9,7 +9,7 @@ import (
 	"github.com/rs/cors"
 )
 
-func HttpStart(fb *handler.FeedbackHandler, h *handler.HealthHandler) {
+func HttpStart(fb *handler.FeedbackHandler, h *handler.HealthHandler, hh *handler.HelperHandler) {
 	mux := http.NewServeMux()
 
 	feedBackHandler := handler.Basic(http.HandlerFunc(fb.HandleFeedbackRequest))
@@ -17,6 +17,11 @@ func HttpStart(fb *handler.FeedbackHandler, h *handler.HealthHandler) {
 
 	healthWithAuth := handler.Protected(http.HandlerFunc(h.HandleHealthRequests))
 	mux.Handle("/api/v1/health/{path...}", healthWithAuth)
+
+	HelperWithAuth := handler.Protected(http.HandlerFunc(hh.HandlePDFRequest))
+	mux.Handle("/api/v1/helper/pdf", HelperWithAuth)
+
+	slog.Info("Routes registered successfully")
 
 	slog.Info("Starting server on :" + config.App.Port)
 
