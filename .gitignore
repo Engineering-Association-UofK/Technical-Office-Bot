@@ -34,3 +34,8 @@ go.work.sum
 
 # Other
 logs.json
+*.pdf
+*.html
+*.log
+*.zip
+*.tar.gz
