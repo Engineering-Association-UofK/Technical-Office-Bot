@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -14,12 +13,13 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+type Role string
+
 type AdminClaims struct {
-	ID    float64  `json:"id"`
-	Name  string   `json:"name"`
-	Email string   `json:"email"`
-	Type  string   `json:"type"`
-	Roles []string `json:"roles"`
+	UserID   int64  `json:"user_id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Roles    []Role `json:"roles"`
 
 	jwt.RegisteredClaims
 }
@@ -50,13 +50,13 @@ func BasicProtected(next http.Handler) http.Handler {
 func Protected(next http.Handler) http.Handler {
 	return Basic(
 		authMiddleware(
-			requireType("admin")(next),
+			requireRole("sys:admin")(next),
 		),
 	)
 }
 
 // Role based access for admins
-func RoleProtected(role string) func(http.Handler) http.Handler {
+func RoleProtected(role Role) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return Protected(
 			requireRole(role)(next),
@@ -64,7 +64,7 @@ func RoleProtected(role string) func(http.Handler) http.Handler {
 	}
 }
 
-func AnyRoleProtected(roles []string) func(http.Handler) http.Handler {
+func AnyRoleProtected(roles []Role) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return Protected(
 			requireRoles(roles)(next),
@@ -72,7 +72,7 @@ func AnyRoleProtected(roles []string) func(http.Handler) http.Handler {
 	}
 }
 
-func requireRole(role string) func(http.Handler) http.Handler {
+func requireRole(role Role) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			claims, ok := r.Context().Value(userKey).(*AdminClaims)
@@ -92,7 +92,7 @@ func requireRole(role string) func(http.Handler) http.Handler {
 	}
 }
 
-func requireRoles(roles []string) func(http.Handler) http.Handler {
+func requireRoles(roles []Role) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			claims, ok := r.Context().Value(userKey).(*AdminClaims)
@@ -102,7 +102,7 @@ func requireRoles(roles []string) func(http.Handler) http.Handler {
 				return
 			}
 
-			if func(base []string, toCheck []string) bool {
+			if func(base []Role, toCheck []Role) bool {
 				for b := range base {
 					for t := range toCheck {
 						if b == t {
@@ -112,26 +112,6 @@ func requireRoles(roles []string) func(http.Handler) http.Handler {
 				}
 				return false
 			}(claims.Roles, roles) {
-				http.Error(w, "Forbidden", http.StatusForbidden)
-				return
-			}
-
-			next.ServeHTTP(w, r)
-		})
-	}
-}
-
-func requireType(Type string) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			claims, ok := r.Context().Value(userKey).(*AdminClaims)
-
-			if !ok {
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
-				return
-			}
-
-			if claims.Type != Type {
 				http.Error(w, "Forbidden", http.StatusForbidden)
 				return
 			}
@@ -161,12 +141,7 @@ func authMiddleware(next http.Handler) http.Handler {
 		}
 		tokenString = strings.TrimPrefix(tokenString, "Bearer ")
 
-		secretBytes, err := base64.RawStdEncoding.DecodeString(config.App.JwtSecret)
-		if err != nil {
-			slog.Error("Failed to decode JWT secret from Base64", "error", err)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
+		secretBytes := []byte(config.App.JwtSecret)
 
 		// Get token and claims
 		claims := &AdminClaims{}
@@ -180,7 +155,6 @@ func authMiddleware(next http.Handler) http.Handler {
 		// Check validity
 		if err != nil || !token.Valid {
 			http.Error(w, "Invalid Token", http.StatusUnauthorized)
-			slog.Debug("Invalid Token: " + err.Error())
 			return
 		}
 

@@ -16,7 +16,6 @@ import (
 var (
 	fbHandler *handler.FeedbackHandler
 	hHandler  *handler.HealthHandler
-	hhHandler *handler.HelperHandler
 )
 
 func main() {
@@ -24,7 +23,7 @@ func main() {
 	SetupHandlers()
 
 	// Set up HTTP server and map endpoints
-	routes.HttpStart(fbHandler, hHandler, hhHandler)
+	routes.HttpStart(fbHandler, hHandler)
 }
 
 func Init() {
@@ -66,7 +65,4 @@ func SetupHandlers() {
 		panic("Error starting system monitoring: " + err.Error())
 	}
 	hHandler = handler.NewHealthHandler(health)
-
-	pdfService := service.NewPDFService(1)
-	hhHandler = handler.NewHelper(*pdfService)
 }
