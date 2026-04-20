@@ -8,8 +8,9 @@ import (
 var App Config
 
 type Config struct {
-	TelegramToken string `env:"TELEGRAM_API_TOKEN,required"`
-	Port          string `env:"PORT,required"`
+	TelegramToken   string `env:"TELEGRAM_API_TOKEN,required"`
+	TelegramChannel int64  `env:"TELEGRAM_CHANNEL_ID,required"`
+	Port            string `env:"PORT,required"`
 
 	DBHost     string `env:"DB_HOST,required"`
 	DBPort     string `env:"DB_PORT,required"`
@@ -17,11 +18,13 @@ type Config struct {
 	DBPassword string `env:"DB_PASSWORD,required"`
 	DBName     string `env:"DB_NAME,required"`
 
-	JwtSecret string `env:"JWT_SECRET"`
+	JwtSecret    string `env:"JWT_SECRET,required"`
+	BackupDir    string `env:"BACKUP_DIR,required"`
+	BackupSecret string `env:"BACKUP_SECRET,required"`
 
-	UserName string `env:"USERNAME"`
-	Password string `env:"PASSWORD"`
-	Host     string `env:"HOST"`
+	UserName string `env:"USERNAME,required"`
+	Password string `env:"PASSWORD,required"`
+	Host     string `env:"HOST,required"`
 }
 
 func Load() error {

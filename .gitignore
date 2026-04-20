@@ -28,9 +28,13 @@ go.work.sum
 # env file
 .env
 
+# folders
+/dummy
+/restore
+
 # Editor/IDE
 # .idea/
-# .vscode/
+.vscode/
 
 # Other
 logs.json
@@ -39,3 +43,4 @@ logs.json
 *.log
 *.zip
 *.tar.gz
+*.tar.gz.enc

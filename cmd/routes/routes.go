@@ -9,19 +9,56 @@ import (
 	"github.com/rs/cors"
 )
 
-func HttpStart(fb *handler.FeedbackHandler, h *handler.HealthHandler) {
+var (
+	Fbh *handler.FeedbackHandler
+	Hh  *handler.HealthHandler
+	Bh  *handler.BackupHandler
+)
+
+func HttpStart() {
 	mux := http.NewServeMux()
 
-	feedBackHandler := handler.Basic(http.HandlerFunc(fb.HandleFeedbackRequest))
+	////////////////////
+	////  Feedback  ////
+	////////////////////
+
+	feedBackHandler := handler.Basic(http.HandlerFunc(Fbh.HandleFeedbackRequest))
 	mux.Handle("/api/v1/feedback", feedBackHandler)
 
-	healthWithAuth := handler.Protected(http.HandlerFunc(h.HandleHealthRequests))
+	////////////////////
+	////   Health   ////
+	////////////////////
+
+	healthWithAuth := handler.Protected(http.HandlerFunc(Hh.HandleHealthRequests))
 	mux.Handle("/api/v1/health/{path...}", healthWithAuth)
 
-	slog.Info("Routes registered successfully")
+	////////////////////
+	////   Backup   ////
+	////////////////////
 
+	restore := handler.Protected(http.HandlerFunc(Bh.HandleTriggerRestore))
+	mux.Handle("/api/v1/restore", restore)
+
+	backup := handler.Protected(http.HandlerFunc(Bh.HandleTriggerBackup))
+	mux.Handle("/api/v1/backup", backup)
+
+	backupDetails := handler.Protected(http.HandlerFunc(Bh.HandleGetBackupDetails))
+	mux.Handle("/api/v1/backup/details", backupDetails)
+
+	backupInterval := handler.Protected(http.HandlerFunc(Bh.HandleChangeBackupInterval))
+	mux.Handle("/api/v1/backup/interval", backupInterval)
+
+	backupTime := handler.Protected(http.HandlerFunc(Bh.HandleChangeBackupTime))
+	mux.Handle("/api/v1/backup/time", backupTime)
+
+	////////////////////
+	////   Config   ////
+	////////////////////
+
+	slog.Info("Routes registered successfully")
 	slog.Info("Starting server on :" + config.App.Port)
 
+	// CORS
 	corsOptions := cors.Options{
 		AllowedOrigins: []string{"*"},
 		AllowedMethods: []string{"GET", "POST", "OPTIONS"},

@@ -54,3 +54,10 @@ CREATE TABLE IF NOT EXISTS telegram_interactions (
 
     FOREIGN KEY (telegram_user_id) REFERENCES telegram_users(telegram_id)
 );
+
+CREATE TABLE IF NOT EXISTS telegram_backups (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    backup_date VARCHAR(100) NOT NULL,
+    part_number INT NOT NULL,
+    telegram_file_id VARCHAR(255) NOT NULL
+);

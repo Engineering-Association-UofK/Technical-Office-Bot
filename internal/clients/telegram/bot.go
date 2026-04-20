@@ -1,9 +1,14 @@
 package telegram
 
 import (
+	"fmt"
+	"io"
 	"log/slog"
+	"net/http"
+	"path/filepath"
 	"strings"
 
+	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/config"
 	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/locale"
 	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/models"
 	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/repository"
@@ -18,6 +23,7 @@ type TelegramBot struct {
 	notify    <-chan string
 	repo      *repository.TelegramRepo
 	fbService *service.FeedbackService
+	channel   int64
 }
 
 func TelegramInit(token string, db *sqlx.DB, fbService *service.FeedbackService, notificationChannel <-chan string) (*TelegramBot, error) {
@@ -47,6 +53,7 @@ func TelegramInit(token string, db *sqlx.DB, fbService *service.FeedbackService,
 			},
 		},
 		fbService: fbService,
+		channel:   config.App.TelegramChannel,
 	}
 
 	// Begin listening to incoming messages
@@ -130,4 +137,49 @@ func (t *TelegramBot) NotifyTechnicalAdmins() {
 			t.bot.Send(msg)
 		}
 	}
+}
+
+func (t *TelegramBot) UploadChunk(filePath string, dateStr string, partNum int) (string, error) {
+	doc := tgbotapi.NewDocument(t.channel, tgbotapi.FilePath(filePath))
+	doc.Caption = fmt.Sprintf("📦 #backup_%s | Part %d\nFile: %s", dateStr, partNum, filepath.Base(filePath))
+
+	message, err := t.bot.Send(doc)
+	if err != nil {
+		return "", err
+	}
+
+	if message.Document != nil {
+		return message.Document.FileID, nil
+	}
+
+	return "", fmt.Errorf("no document found in telegram response")
+}
+
+// GetFileStream retrieves the direct download stream from Telegram for a given FileID
+func (t *TelegramBot) GetFileStream(fileID string) (io.ReadCloser, error) {
+	// 1. Ask Telegram for the file metadata (specifically the FilePath)
+	fileConfig := tgbotapi.FileConfig{FileID: fileID}
+	file, err := t.bot.GetFile(fileConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get file metadata from telegram: %w", err)
+	}
+
+	// 2. Use the helper method provided by the library to construct the full link:
+	// https://api.telegram.org/file/bot<token>/<file_path>
+	downloadURL := file.Link(t.bot.Token)
+
+	// 3. Perform a standard HTTP GET to stream the bytes
+	resp, err := http.Get(downloadURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initiate download from telegram: %w", err)
+	}
+
+	// 4. Check for success
+	if resp.StatusCode != http.StatusOK {
+		resp.Body.Close()
+		return nil, fmt.Errorf("telegram download returned status: %s", resp.Status)
+	}
+
+	// We return the body as an io.ReadCloser so the Restore function can stream it
+	return resp.Body, nil
 }

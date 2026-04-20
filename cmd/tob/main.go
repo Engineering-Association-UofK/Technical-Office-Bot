@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log/slog"
 	"time"
 
@@ -11,19 +10,18 @@ import (
 	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/database"
 	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/handler"
 	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/service"
-)
-
-var (
-	fbHandler *handler.FeedbackHandler
-	hHandler  *handler.HealthHandler
+	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/service/backup"
 )
 
 func main() {
 	Init()
+
+	slog.Info("Starting Technical Office Bot... 🤖")
+
 	SetupHandlers()
 
 	// Set up HTTP server and map endpoints
-	routes.HttpStart(fbHandler, hHandler)
+	routes.HttpStart()
 }
 
 func Init() {
@@ -45,24 +43,27 @@ func SetupHandlers() {
 	sysHealthIntervalUpdateChannel := make(chan time.Duration, 1)
 
 	// Set up database
-	db, err := database.NewMySQLConnection(fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", config.App.DBUser, config.App.DBPassword, config.App.DBHost, config.App.DBPort, config.App.DBName))
+	db, err := database.NewMySQLConnection()
 	if err != nil {
 		panic("Error creating database connection: " + err.Error())
 	}
 
 	// Set up feedback
 	fbService := service.NewFeedbackService(db, notificationChannel)
-	fbHandler = handler.NewFeedbackHandler(fbService)
-
-	// Start the telegram bot
-	_, err = telegram.TelegramInit(config.App.TelegramToken, db, fbService, notificationChannel)
-	if err != nil {
-		slog.Error("Error starting telegram service: " + err.Error())
-	}
+	routes.Fbh = handler.NewFeedbackHandler(fbService)
 
 	health, err := service.NewSystemHealth(sysHealthIntervalUpdateChannel, admin)
 	if err != nil {
 		panic("Error starting system monitoring: " + err.Error())
 	}
-	hHandler = handler.NewHealthHandler(health)
+	routes.Hh = handler.NewHealthHandler(health)
+
+	// Start the telegram bot
+	bot, err := telegram.TelegramInit(config.App.TelegramToken, db, fbService, notificationChannel)
+	if err != nil {
+		slog.Error("Error starting telegram service: " + err.Error())
+	}
+
+	backupService := backup.NewBackupService(*db, bot)
+	routes.Bh = handler.NewBackupHandler(backupService)
 }

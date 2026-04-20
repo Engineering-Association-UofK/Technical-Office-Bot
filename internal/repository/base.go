@@ -38,3 +38,18 @@ func (br *BaseRepo[T]) Persist(query string, args ...any) (int64, error) {
 
 	return id, nil
 }
+
+// Persist with transaction
+func (br *BaseRepo[T]) PersistTx(tx *sqlx.Tx, query string, args ...any) (int64, error) {
+	result, err := tx.Exec(query, args...)
+	if err != nil {
+		return 0, err
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
