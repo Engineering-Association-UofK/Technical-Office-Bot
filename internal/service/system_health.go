@@ -125,6 +125,45 @@ func (sh *SystemHealth) CheckProcess() {
 
 }
 
+// func (sh *SystemHealth) CheckProcess() {
+// 	ctx := context.Background()
+// 	cli, err := client.NewClientWithOpts(client.FromEnv)
+// 	if err != nil {
+// 		slog.Error("Failed to connect to Docker daemon", "error", err)
+// 		sh.AppProcess.IsRunning = false
+// 		return
+// 	}
+// 	defer cli.Close()
+
+// 	// You can use the container name or ID defined in your docker-compose
+// 	containerName := "my_go_backend"
+// 	stats, err := cli.ContainerStats(ctx, containerName, false)
+// 	if err != nil {
+// 		slog.Error("Failed to fetch container stats", "container", containerName, "error", err)
+// 		sh.AppProcess.IsRunning = false
+// 		return
+// 	}
+// 	defer stats.Body.Close()
+
+// 	var v container.StatsResponse
+// 	if err := json.NewDecoder(stats.Body).Decode(&v); err != nil {
+// 		slog.Error("Failed to decode stats", "error", err)
+// 		return
+// 	}
+
+// 	sh.AppProcess.IsRunning = true
+// 	sh.AppProcess.MemoryUsed = v.MemoryStats.Usage
+
+// 	// Docker CPU math is slightly more complex:
+// 	// (cpu_delta / system_delta) * number_of_cpus * 100.0
+// 	cpuDelta := float64(v.CPUStats.CPUUsage.TotalUsage) - float64(v.PreCPUStats.CPUUsage.TotalUsage)
+// 	systemDelta := float64(v.CPUStats.SystemUsage) - float64(v.PreCPUStats.SystemUsage)
+
+// 	if systemDelta > 0 && cpuDelta > 0 {
+// 		sh.AppProcess.CpuPercent = (cpuDelta / systemDelta) * float64(len(v.CPUStats.CPUUsage.PercpuUsage)) * 100.0
+// 	}
+// }
+
 func findBackend(targetPort uint32) (*process.Process, error) {
 	conns, err := net.Connections("all")
 	if err != nil {

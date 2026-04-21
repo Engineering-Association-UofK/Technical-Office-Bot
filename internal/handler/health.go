@@ -1,8 +1,7 @@
 package handler
 
 import (
-	"encoding/json"
-	"net/http"
+	"context"
 	"time"
 
 	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/models"
@@ -18,34 +17,25 @@ func NewHealthHandler(health *service.SystemHealth) *HealthHandler {
 	return &HealthHandler{System: health}
 }
 
-func (hh *HealthHandler) HandleHealthRequests(w http.ResponseWriter, r *http.Request) {
+func (hh *HealthHandler) GetOverview(ctx context.Context, input *struct{}) (*models.RespWithBody, error) {
+	overview := hh.createOverview()
+	return &models.RespWithBody{
+		Body: overview,
+	}, nil
+}
 
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
+func (hh *HealthHandler) GetSystemHealth(ctx context.Context, input *struct{}) (*models.RespWithBody, error) {
+	system := hh.createSystemHealthDetails()
+	return &models.RespWithBody{
+		Body: system,
+	}, nil
+}
 
-	endpoint := r.PathValue("path")
-
-	var response any
-
-	switch endpoint {
-	case "overview":
-		response = hh.createOverview()
-
-	case "system":
-		response = hh.createSystemHealthDetails()
-
-	case "app":
-		response = hh.createAppHealthDetails()
-
-	default:
-		http.NotFound(w, r)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+func (hh *HealthHandler) GetAppHealth(ctx context.Context, input *struct{}) (*models.RespWithBody, error) {
+	app := hh.createAppHealthDetails()
+	return &models.RespWithBody{
+		Body: app,
+	}, nil
 }
 
 func (hh *HealthHandler) createAppHealthDetails() models.AppHealthResponse {

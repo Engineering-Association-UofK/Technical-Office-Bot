@@ -1,10 +1,12 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"time"
 
+	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/models"
 	"github.com/Engineering-Association-UofK/Technical-Office-Bot/internal/service/backup"
 )
 
@@ -101,4 +103,68 @@ func (b *BackupHandler) HandleChangeBackupTime(w http.ResponseWriter, r *http.Re
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Backup time updated successfully"))
+}
+
+func (b *BackupHandler) TriggerBackup(ctx context.Context, input *struct{}) (*models.RespWithBody, error) {
+	go b.service.TriggerBackup()
+
+	return &models.RespWithBody{
+		Body: models.DefaultResponse{
+			Status:    "success",
+			Message:   "Backup triggered successfully",
+			Timestamp: time.Now(),
+		},
+	}, nil
+}
+
+func (b *BackupHandler) TriggerRestore(ctx context.Context, input *struct{}) (*models.RespWithBody, error) {
+	go b.service.Restore()
+
+	return &models.RespWithBody{
+		Body: models.DefaultResponse{
+			Status:    "success",
+			Message:   "Restore triggered successfully. Check logs for details.",
+			Timestamp: time.Now(),
+		},
+	}, nil
+}
+
+func (b *BackupHandler) GetBackupDetails(ctx context.Context, input *struct{}) (*models.RespWithBody, error) {
+	details, err := b.service.GetBackupDetails()
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.RespWithBody{
+		Body: details,
+	}, nil
+}
+
+func (b *BackupHandler) ChangeBackupInterval(ctx context.Context, input *models.ChangeBackupIntervalRequest) (*models.RespWithBody, error) {
+	if err := b.service.SetBackupInterval(input.Interval); err != nil {
+		return nil, err
+	}
+
+	return &models.RespWithBody{
+		Body: models.DefaultResponse{
+			Status:    "success",
+			Message:   "Backup interval updated successfully",
+			Timestamp: time.Now(),
+		},
+	}, nil
+}
+
+func (b *BackupHandler) ChangeBackupTime(ctx context.Context, input *models.ChangeBackupTimeRequest) (*models.RespWithBody, error) {
+	// Assuming the request contains a time.Time where we extract Hour and Minute
+	if err := b.service.SetBackupTime(input.Time.Hour(), input.Time.Minute()); err != nil {
+		return nil, err
+	}
+
+	return &models.RespWithBody{
+		Body: models.DefaultResponse{
+			Status:    "success",
+			Message:   "Backup time updated successfully",
+			Timestamp: time.Now(),
+		},
+	}, nil
 }

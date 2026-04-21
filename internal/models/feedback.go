@@ -14,9 +14,12 @@ type FeedbackModel struct {
 	Message    string        `db:"message"`
 	CreatedAt  time.Time     `db:"created_at"`
 }
+
 type FeedbackRequest struct {
-	Name    string `json:"name"`
-	Email   string `json:"email"`
-	Phone   string `json:"phone"`
-	Message string `json:"message"`
+	Body struct {
+		Name    string `json:"name"`
+		Email   string `json:"email"`
+		Phone   string `json:"phone"`
+		Message string `json:"message"`
+	} `json:"body"`
 }
