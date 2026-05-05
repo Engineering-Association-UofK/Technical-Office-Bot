@@ -10,11 +10,15 @@ import (
 )
 
 type HealthHandler struct {
-	System *service.SystemHealth
+	System          *service.SystemHealth
+	ContainerHealth *service.ContainerHealthService
 }
 
-func NewHealthHandler(health *service.SystemHealth) *HealthHandler {
-	return &HealthHandler{System: health}
+func NewHealthHandler(health *service.SystemHealth, containerHealth *service.ContainerHealthService) *HealthHandler {
+	return &HealthHandler{
+		System:          health,
+		ContainerHealth: containerHealth,
+	}
 }
 
 func (hh *HealthHandler) GetOverview(ctx context.Context, input *struct{}) (*models.RespWithBody, error) {
@@ -32,27 +36,10 @@ func (hh *HealthHandler) GetSystemHealth(ctx context.Context, input *struct{}) (
 }
 
 func (hh *HealthHandler) GetAppHealth(ctx context.Context, input *struct{}) (*models.RespWithBody, error) {
-	app := hh.createAppHealthDetails()
+	app := hh.ContainerHealth.GetAppHealth()
 	return &models.RespWithBody{
 		Body: app,
 	}, nil
-}
-
-func (hh *HealthHandler) createAppHealthDetails() models.AppHealthResponse {
-	app := hh.System.AppProcess
-
-	status := "DOWN"
-	if app.IsRunning && hh.System.IsResponsive {
-		status = "UP"
-	}
-
-	return models.AppHealthResponse{
-		IsRunning:       app.IsRunning,
-		CPUPercent:      app.CpuPercent,
-		MemoryUsedBytes: app.MemoryUsed,
-		MemoryUsedMB:    app.MemoryUsed / 1024 / 1024,
-		Status:          status,
-	}
 }
 
 func (hh *HealthHandler) createOverview() models.HealthOverviewResponse {
@@ -110,9 +97,11 @@ func (hh *HealthHandler) createSystemHealthDetails() models.SystemHealthResponse
 	}
 
 	return models.SystemHealthResponse{
-		CPU:           c,
-		Memory:        m,
-		Disk:          d,
-		UptimeSeconds: hh.System.Status.Uptime,
+		CPUPercent:       c.LoadPercent,
+		MemoryUsedBytes:  m.UsedBytes,
+		MemoryTotalBytes: m.TotalBytes,
+		DiskUsedBytes:    d.UsedBytes,
+		DiskTotalBytes:   d.TotalBytes,
+		UptimeSeconds:    hh.System.Status.Uptime,
 	}
 }

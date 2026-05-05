@@ -20,14 +20,12 @@ type SystemHealth struct {
 	AppProcess models.AppProcess
 	Interval   time.Duration
 
-	AdminAccount *AdminAccount
-
 	IsResponsive bool
 
 	IntervalChannel <-chan time.Duration
 }
 
-func NewSystemHealth(channel <-chan time.Duration, admin *AdminAccount) (*SystemHealth, error) {
+func NewSystemHealth(channel <-chan time.Duration) (*SystemHealth, error) {
 	sh := SystemHealth{
 		Status: models.Status{
 			Memory: models.Memory{},
@@ -35,7 +33,6 @@ func NewSystemHealth(channel <-chan time.Duration, admin *AdminAccount) (*System
 			CPU:    models.CPU{},
 		},
 		Interval:        time.Second * 10,
-		AdminAccount:    admin,
 		IsResponsive:    true,
 		IntervalChannel: channel,
 	}
@@ -91,78 +88,12 @@ func (sh *SystemHealth) Listen() {
 		select {
 		case <-ticker.C:
 			sh.UpdateStatus()
-			sh.CheckProcess()
-			sh.PingBackend()
 		case newInterval := <-sh.IntervalChannel:
 			ticker.Reset(newInterval)
 			sh.UpdateStatus()
 		}
 	}
 }
-
-func (sh *SystemHealth) CheckProcess() {
-	p, err := findBackend(8080)
-	if err != nil {
-		slog.Error("Failed to fetch process info: "+err.Error(), "port", 8080)
-		sh.AppProcess.IsRunning = false
-		return
-	}
-	sh.AppProcess.IsRunning = true
-
-	c, err := p.CPUPercent()
-	if err != nil {
-		slog.Error("Error reading process CPU usage: " + err.Error())
-	} else {
-		sh.AppProcess.CpuPercent = c
-	}
-
-	m, err := p.MemoryInfo()
-	if err != nil {
-		slog.Error("Error reading process CPU usage: " + err.Error())
-	} else {
-		sh.AppProcess.MemoryUsed = m.RSS
-	}
-
-}
-
-// func (sh *SystemHealth) CheckProcess() {
-// 	ctx := context.Background()
-// 	cli, err := client.NewClientWithOpts(client.FromEnv)
-// 	if err != nil {
-// 		slog.Error("Failed to connect to Docker daemon", "error", err)
-// 		sh.AppProcess.IsRunning = false
-// 		return
-// 	}
-// 	defer cli.Close()
-
-// 	// You can use the container name or ID defined in your docker-compose
-// 	containerName := "my_go_backend"
-// 	stats, err := cli.ContainerStats(ctx, containerName, false)
-// 	if err != nil {
-// 		slog.Error("Failed to fetch container stats", "container", containerName, "error", err)
-// 		sh.AppProcess.IsRunning = false
-// 		return
-// 	}
-// 	defer stats.Body.Close()
-
-// 	var v container.StatsResponse
-// 	if err := json.NewDecoder(stats.Body).Decode(&v); err != nil {
-// 		slog.Error("Failed to decode stats", "error", err)
-// 		return
-// 	}
-
-// 	sh.AppProcess.IsRunning = true
-// 	sh.AppProcess.MemoryUsed = v.MemoryStats.Usage
-
-// 	// Docker CPU math is slightly more complex:
-// 	// (cpu_delta / system_delta) * number_of_cpus * 100.0
-// 	cpuDelta := float64(v.CPUStats.CPUUsage.TotalUsage) - float64(v.PreCPUStats.CPUUsage.TotalUsage)
-// 	systemDelta := float64(v.CPUStats.SystemUsage) - float64(v.PreCPUStats.SystemUsage)
-
-// 	if systemDelta > 0 && cpuDelta > 0 {
-// 		sh.AppProcess.CpuPercent = (cpuDelta / systemDelta) * float64(len(v.CPUStats.CPUUsage.PercpuUsage)) * 100.0
-// 	}
-// }
 
 func findBackend(targetPort uint32) (*process.Process, error) {
 	conns, err := net.Connections("all")
@@ -190,31 +121,6 @@ func findBackend(targetPort uint32) (*process.Process, error) {
 	}
 
 	return nil, fmt.Errorf("backend not found")
-}
-
-func (sh *SystemHealth) PingBackend() {
-	health, e, err := sh.AdminAccount.CheckHealth()
-	if err != nil {
-		slog.Error("Error fetching actuator in Backend: "+err.Error(), "port", 8080, "endpoint", "/actuator/health")
-		sh.IsResponsive = false
-		return
-	}
-	if e != nil {
-		slog.Error("Pinging backend returned an exception", "Status", e.Status, "Message", e.Message, "Time", e.TimeStamp)
-		sh.IsResponsive = false
-		return
-	}
-	if health == nil {
-		slog.Error("Pinging backend returned no data", "port", 8080, "endpoint", "/actuator/health")
-		sh.IsResponsive = false
-		return
-	}
-
-	if health.Status == "UP" {
-		sh.IsResponsive = true
-	} else {
-		sh.IsResponsive = false
-	}
 }
 
 func (sh *SystemHealth) UpdateStatus() {

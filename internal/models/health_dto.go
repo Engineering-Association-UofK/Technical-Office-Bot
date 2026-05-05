@@ -38,27 +38,27 @@ type DiskResponse struct {
 	UsedPercent float64 `json:"usedPercent"`
 }
 
-type SystemHealthResponse struct {
-	CPU           CPUResponse    `json:"cpu"`
-	Memory        MemoryResponse `json:"memory"`
-	Disk          DiskResponse   `json:"disk"`
-	UptimeSeconds uint64         `json:"uptimeSeconds"`
-}
+// type SystemHealthResponse struct {
+// 	CPU           CPUResponse    `json:"cpu"`
+// 	Memory        MemoryResponse `json:"memory"`
+// 	Disk          DiskResponse   `json:"disk"`
+// 	UptimeSeconds uint64         `json:"uptimeSeconds"`
+// }
 
-// App Process
-type AppHealthResponse struct {
-	IsRunning       bool    `json:"isRunning"`
-	CPUPercent      float64 `json:"cpuPercent"`
-	MemoryUsedBytes uint64  `json:"memoryUsedBytes"`
-	MemoryUsedMB    uint64  `json:"memoryUsedMB"`
-	Status          string  `json:"status"`
-}
+// // App Process
+// type AppHealthResponse struct {
+// 	IsRunning       bool    `json:"isRunning"`
+// 	CPUPercent      float64 `json:"cpuPercent"`
+// 	MemoryUsedBytes uint64  `json:"memoryUsedBytes"`
+// 	MemoryUsedMB    uint64  `json:"memoryUsedMB"`
+// 	Status          string  `json:"status"`
+// }
 
-// Metrics
-type MetricPoint struct {
-	Timestamp time.Time `json:"timestamp"`
-	Value     float64   `json:"value"`
-}
+// // Metrics
+// type MetricPoint struct {
+// 	Timestamp time.Time `json:"timestamp"`
+// 	Value     float64   `json:"value"`
+// }
 
 type MetricsResponse struct {
 	Range           string        `json:"range"`

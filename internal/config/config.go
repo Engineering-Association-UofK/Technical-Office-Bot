@@ -11,6 +11,7 @@ type Config struct {
 	TelegramToken   string `env:"TELEGRAM_API_TOKEN,required"`
 	TelegramChannel int64  `env:"TELEGRAM_CHANNEL_ID,required"`
 	Port            string `env:"PORT,required"`
+	LogLevel        int    `env:"LOG_LEVEL,required"`
 
 	DBHost     string `env:"DB_HOST,required"`
 	DBPort     string `env:"DB_PORT,required"`
@@ -22,9 +23,8 @@ type Config struct {
 	BackupDir    string `env:"BACKUP_DIR,required"`
 	BackupSecret string `env:"BACKUP_SECRET,required"`
 
-	UserName string `env:"USERNAME,required"`
-	Password string `env:"PASSWORD,required"`
-	Host     string `env:"HOST,required"`
+	PrometheusHost string `env:"PROMETHEUS_HOST,required"`
+	Host           string `env:"HOST,required"`
 }
 
 func Load() error {

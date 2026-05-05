@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"time"
 
@@ -32,12 +33,14 @@ func Init() {
 	}
 
 	// Setup logging
-	Log := config.NewMultiHandlerLog()
+	Log := config.NewMultiHandlerLog(slog.Level(-5))
 	slog.SetDefault(Log)
 }
 
 func SetupHandlers() {
-	admin := service.NewAdminAccount()
+	containerHealth := service.NewContainerHealthService()
+	containerHealth.StartBackgroundUpdater(context.Background(), time.Duration(10*time.Second))
+	slog.Info("ContainerHealthService started")
 
 	notificationChannel := make(chan string, 25)
 	sysHealthIntervalUpdateChannel := make(chan time.Duration, 1)
@@ -52,11 +55,11 @@ func SetupHandlers() {
 	fbService := service.NewFeedbackService(db, notificationChannel)
 	routes.Fbh = handler.NewFeedbackHandler(fbService)
 
-	health, err := service.NewSystemHealth(sysHealthIntervalUpdateChannel, admin)
+	health, err := service.NewSystemHealth(sysHealthIntervalUpdateChannel)
 	if err != nil {
 		panic("Error starting system monitoring: " + err.Error())
 	}
-	routes.Hh = handler.NewHealthHandler(health)
+	routes.Hh = handler.NewHealthHandler(health, containerHealth)
 
 	// Start the telegram bot
 	bot, err := telegram.TelegramInit(config.App.TelegramToken, db, fbService, notificationChannel)
